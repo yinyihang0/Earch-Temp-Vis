@@ -1,0 +1,151 @@
+---
+title: "map"
+output: html_document
+---
+
+```{r lib}
+library(shiny)
+library(echarts4r)
+library(zoo)
+library(lubridate)
+library(dplyr)
+library(shinyjs)
+```
+
+数据初始处理，读取各个国家的气温数据
+
+```{r data prepare}
+
+df <- read.csv("GlobalLandTemperaturesByCountry.csv", header = TRUE)
+
+df$dt <- as.Date(df$dt, format="%Y-%m-%d")
+
+df_gobal <- read.csv("GlobalTemperatures.csv", header = TRUE)
+
+df_gobal$dt <- as.Date(df_gobal$dt, format="%Y-%m-%d")
+
+df_by_states <- read.csv("GlobalLandTemperaturesByState.csv", header = TRUE)
+df_by_states$dt <- as.Date(df_by_states$dt, format="%Y-%m-%d")
+
+df_by_major_city <- read.csv("GlobalLandTemperaturesByMajorCity.csv", header = TRUE)
+df_by_major_city <- df_by_major_city %>%
+  mutate(
+    Latitude = as.numeric(gsub("[NS]", "", Latitude)) * 
+      ifelse(grepl("S", Latitude), -1, 1),
+    Longitude = as.numeric(gsub("[EW]", "", Longitude)) * 
+      ifelse(grepl("W", Longitude), -1, 1)
+  )
+df_by_major_city$dt <- as.Date(df_by_major_city$dt, format="%Y-%m-%d")
+
+df_by_city <- read.csv("GlobalLandTemperaturesByCity.csv", header = TRUE)
+df_by_city <- df_by_city %>%
+  mutate(
+    Latitude = as.numeric(gsub("[NS]", "", Latitude)) * 
+      ifelse(grepl("S", Latitude), -1, 1),
+    Longitude = as.numeric(gsub("[EW]", "", Longitude)) * 
+      ifelse(grepl("W", Longitude), -1, 1)
+  )
+# print(head(df_by_city))
+
+df_by_city$dt <- as.Date(df_by_city$dt, format="%Y-%m-%d")
+
+```
+
+按照10年计算各个国家的平均气温 方便地图中展示
+
+```{r}
+averages_10_years <- df |>
+  mutate(year = year(dt)) |>           # 提取年份
+  group_by(Country, group = (year - 1) %/% 10) |>
+  summarise(
+    start_year = min(year),
+    end_year = max(year),
+    avg_temp = mean(AverageTemperature, na.rm = TRUE)
+  ) |>
+  select(-group)
+
+averages_10_years_by_major_city <- df_by_major_city |>
+  mutate(year = year(dt)) |>           # 提取年份
+  group_by(City, group = (year - 1) %/% 10) |> # 创建5年的组
+  summarise(
+    start_year = min(year),
+    end_year = max(year),
+    avg_temp_city = mean(AverageTemperature, na.rm = TRUE),
+    mean_uncertainty = mean(sqrt(sum(AverageTemperatureUncertainty^2, na.rm = TRUE)), na.rm = TRUE),
+    Country = first(Country),
+    lat = first(Latitude),
+    lon = first(Longitude)
+  ) |>
+  select(-group)
+
+
+averages_10_years_by_city <- df_by_city |>
+  mutate(year = year(dt)) |>           # 提取年份
+  group_by(City, group = (year - 1) %/% 10) |> # 创建5年的组
+  summarise(
+    start_year = min(year),
+    end_year = max(year),
+    avg_temp_city = mean(AverageTemperature, na.rm = TRUE),
+    mean_uncertainty = mean(sqrt(sum(AverageTemperatureUncertainty^2, na.rm = TRUE)), na.rm = TRUE),
+    Country = first(Country),
+    lat = first(Latitude),
+    lon = first(Longitude)
+  ) |>
+  select(-group)
+
+
+get_avg_by_10_years <- function(df, country, col_name_for_dt, state_col, average_col) {
+  result <- df %>%
+    mutate(year = year(!!sym(col_name_for_dt))) |>
+    filter(Country == country) |>
+    group_by(State, group = (year - 1) %/% 10) |>
+    summarise(
+      start_year = min(year),
+      end_year = max(year),
+      avg_value = mean(AverageTemperature, na.rm = TRUE))
+  return(result)
+}
+
+get_city_by_country <- function(data1, data2, country){
+  res <- data1 |> filter(Country == country)
+  res2 <- data2 |> filter(Country == country)
+  return(rbind(res, res2))
+}
+
+```
+
+获取各个国家的数据，和全球的数据
+
+```{r}
+
+calculate_monthly_avg <- function(data, date_col, value_col) {
+  
+  data |>
+    mutate(year = year(!!sym(date_col)), month = month(!!sym(date_col))) |>
+    group_by(year, month) |>
+    summarise(avg_value = mean(!!sym(value_col), na.rm = TRUE)) |>
+    ungroup() |>
+    mutate(dt = paste(year, month, sep = "-")) |>
+    select(-year, -month)
+}
+
+calculate_yearly_avg <- function(data, date_col, value_col) {
+  
+  data |>
+    mutate(year = year(!!sym(date_col))) |>
+    group_by(year) |>
+    summarise(avg_value = mean(!!sym(value_col), na.rm = TRUE)) |>
+    ungroup() |>
+    mutate(dt = paste(year)) |>
+    select(-year)
+}
+
+df_yearly_avg <- calculate_yearly_avg(df_gobal, "dt", "LandAverageTemperature")
+df_monthly_avg <- calculate_monthly_avg(df_gobal, "dt", "LandAverageTemperature")
+# print(head(df_monthly_avg))
+```
+
+
+
+
+
