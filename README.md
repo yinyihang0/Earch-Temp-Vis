@@ -1,22 +1,10 @@
 
 
-# 地表温度可视化实验报告
-
-## 目录
-
-[toc]
-
-
-
-
-
-
+# 地表温度可视化
 
 ------
 
-![image-20231101165856137](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20231101165856137.png)
-
-
+![image-20231101165856137](.\assets\image-20231101165856137.png)
 
 课设网页（加载可能需要等待一段时间）：[全球温度数据可视化 (shinyapps.io)](https://yyhaccount.shinyapps.io/project1/)
 
@@ -134,7 +122,7 @@
 #### 界面设置
 
 最后的用户界面展示如下：
-![[Pasted image 20231101162904.png]]
+![image-20231101165856137](.\assets\image-20231101165856137.png)
 在本应用中，我们采用了`dashboardPage`来构建一个具有标题、侧边栏和主体内容的仪表板布局。
 
 ##### 侧边栏
@@ -233,14 +221,14 @@
 
 #### 图像绘制
 
-![image-20231101165935627](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20231101165935627.png)
+![image-20231101165935627](.\assets\image-20231101165935627.png)
 
 该项目中主要涉及到三种不同的图形：
 地图、折线图，时间序列分解图，下面分别进行介绍
 
 ##### 地图
 
-<img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20231101170020496.png" alt="image-20231101170020496" style="zoom:35%;" />            <img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20231101170421003.png" alt="image-20231101170421003" style="zoom:70%;" />    
+<img src=".\assets\image-20231101170020496.png" alt="image-20231101170020496" style="zoom:35%;" />            <img src=".\assets\image-20231101170421003.png" alt="image-20231101170421003" style="zoom:70%;" />    
 
 
 
@@ -326,7 +314,7 @@ for(i in seq_along(visual_scatter[["x"]][["opts"]][["options"]])){
 
 ##### 折线图
 
-![image-20231101204307873](C:\Users\lenovo\Desktop\image-20231101204307873.png)
+![image-20231101204307873](.\assets\image-20231101204307873.png)
 
 当用户在地图上点击某一城市时，我们的应用程序会动态地更新并在折线图上展示该城市的平均数据。为了实现这一效果，我们参考并使用了`echarts4r`库中的`e_line_`函数。
 
@@ -342,7 +330,7 @@ for(i in seq_along(visual_scatter[["x"]][["opts"]][["options"]])){
 
 ##### 时序分解
 
-![image-20231101204333112](C:\Users\lenovo\Desktop\image-20231101204333112.png)
+![image-20231101204333112](.\assets\image-20231101204333112.png)
 
 在时序分解部分，由于`echarts4r`对这一特定功能的支持并不完善，我们选择直接使用R的基础`plot`函数进行绘图。这样产生的图像是静态的，与`echarts4r`所生成的动态互动图表有所不同。
 
